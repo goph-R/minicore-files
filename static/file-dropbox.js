@@ -1,5 +1,5 @@
 function createFileDropbox(options) {
-	
+    
     const iconByExtension = {
         'doc': 'word',
         'docx': 'word',
@@ -32,8 +32,8 @@ function createFileDropbox(options) {
         'gif': 'image'
     };
     
-	const mouseInEvents = ['dragover', 'dragenter'];
-	const mouseOutEvents = ['dragleave', 'dragend', 'drop'];
+    const mouseInEvents = ['dragover', 'dragenter'];
+    const mouseOutEvents = ['dragleave', 'dragend', 'drop'];
     
     const containerId = options.id || 0;
     const inputName = options.name || '';
@@ -48,7 +48,7 @@ function createFileDropbox(options) {
     
     let fileDropbox = document.querySelector('#' + containerId + ' .file-dropbox');
     let fileList = document.querySelector('#' + containerId + ' .file-dropbox-list');
-	let uploadLink = document.querySelector('#' + containerId + ' .file-dropbox-upload-link');
+    let uploadLink = document.querySelector('#' + containerId + ' .file-dropbox-upload-link');
     let fileInput = document.querySelector('#' + containerId + ' input[type=file]');
     
     function mouseIn(event) {
@@ -71,9 +71,9 @@ function createFileDropbox(options) {
         event.preventDefault();
         let files = event.dataTransfer.files;
         //console.log(files); // in Edge this is always empty.. why?
-		for (let i = 0; i < files.length; i++) {
-			uploadFile(files[i]);
-		}        
+        for (let i = 0; i < files.length; i++) {
+            uploadFile(files[i]);
+        }        
     }
     
     function addRemoveLink(item, fileName, name) {
@@ -216,13 +216,13 @@ function createFileDropbox(options) {
     }
         
     // add event listeners
-	mouseInEvents.forEach(function (eventName) {
-		fileDropbox.addEventListener(eventName, mouseIn);
-	});
-	mouseOutEvents.forEach(function (eventName) {
-		fileDropbox.addEventListener(eventName, mouseOut);
-	});    
-	fileDropbox.addEventListener('drop', dropFiles);    
+    mouseInEvents.forEach(function (eventName) {
+        fileDropbox.addEventListener(eventName, mouseIn);
+    });
+    mouseOutEvents.forEach(function (eventName) {
+        fileDropbox.addEventListener(eventName, mouseOut);
+    });    
+    fileDropbox.addEventListener('drop', dropFiles);    
     uploadLink.addEventListener('click', function() {
         fileInput.click();
     });    
