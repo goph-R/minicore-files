@@ -35,8 +35,8 @@ function createFileDropbox(options) {
     const mouseInEvents = ['dragover', 'dragenter'];
     const mouseOutEvents = ['dragleave', 'dragend', 'drop'];
     
-    const containerId = options.id || 0;
-    const inputName = options.name || '';
+    const containerId = options.containerId || 0;
+    const inputName = options.inputName || '';
     const maxSize = options.maxSize || 4*1024*1024;
     const uploadUrl = options.uploadUrl || '';
     const removeUrl = options.removeUrl || '';

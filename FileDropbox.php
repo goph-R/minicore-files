@@ -76,8 +76,8 @@ class FileDropbox {
             $filesData[] = $data;
         }
         $options = [
-            'id' => $id,
-            'name' => $this->name,
+            'containerId' => $id,
+            'inputName' => $this->name,
             'uploadUrl' => route_url($this->uploadRoute, $this->uploadRouteParams, '&'),
             'removeUrl' => route_url($this->removeRoute, $this->removeRouteParams, '&'),
             'maxSize' => $maxSize,
