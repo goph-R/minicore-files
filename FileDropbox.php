@@ -71,7 +71,9 @@ class FileDropbox {
         $maxSize = $this->config->get(self::CONFIG_FILE_DROPBOX_MAX_SIZE, self::DEFAULT_FILE_DROPBOX_MAX_SIZE);
         $filesData = [];
         foreach ($files as $file) {
-            $filesData[] = $file->getArray();
+            $data = $file->getArray();
+            $data['path'] = $file->getPath();
+            $filesData[] = $data;
         }
         $options = [
             'id' => $id,
@@ -142,12 +144,6 @@ class FileDropbox {
         return $name;
     }
     
-    protected function createFolders($name) {
-        $path = 'upload/'.substr($name, 0, 2).'/'.substr($name, 2, 2);
-        mkdir($path, 0755, true);
-        return $path.'/'.$name;
-    }
-    
     protected function createFile(UploadedFile $uploadedFile, $name, $type) {
         $file = $this->framework->create('File');
         $file->setName($name);
@@ -163,6 +159,7 @@ class FileDropbox {
     protected function setSuccess(File $file) {
         $json = $file->getArray();
         $json['error'] = null;
+        $json['path'] = $file->getPath();
         $this->response->setContent(json_encode($json));
     }
     
@@ -182,9 +179,9 @@ class FileDropbox {
             return false;
         }        
         $name = $this->createName($uploadedFile);
-        $path = $this->createFolders($name);
-        $uploadedFile->moveTo($path);
         $file = $this->createFile($uploadedFile, $name, $type);
+        mkdir(dirname($file->getPath()), 0755, true);
+        $uploadedFile->moveTo($file->getPath());
         $this->setSuccess($file);
         return $file;
     }

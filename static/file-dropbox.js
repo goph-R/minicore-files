@@ -44,8 +44,8 @@ function createFileDropbox(options) {
     const removeText = options.removeText || 'Remove';
     const removeConfirmText = options.removeConfirmText || 'Are you sure, you want to remove?';
     const hideText = options.hideText || 'Hide';
-    const filesData = options.filesData || [];
     
+    let filesData = options.filesData || [];      
     let fileDropbox = document.querySelector('#' + containerId + ' .file-dropbox');
     let fileList = document.querySelector('#' + containerId + ' .file-dropbox-list');
     let uploadLink = document.querySelector('#' + containerId + ' .file-dropbox-upload-link');
@@ -74,6 +74,15 @@ function createFileDropbox(options) {
         for (let i = 0; i < files.length; i++) {
             uploadFile(files[i]);
         }        
+    }
+    
+    function findPathByName(name) {
+        for (let i = 0; i < filesData.length; i++) {
+            if (filesData[i].name === name) {
+                return filesData[i].path;
+            }            
+        }
+        return '';
     }
     
     function addRemoveLink(item, fileName, name) {
@@ -141,7 +150,6 @@ function createFileDropbox(options) {
         let icon = document.createElement('i');
         let nameNode = document.createTextNode(fileName);
         let link = document.createElement('a');
-        let href = 'upload/' + name[0] + name[1] + '/' + name[2] + name[3] + '/' + name;
         let ext = fileName.substr(fileName.lastIndexOf('.') + 1);
         if (iconByExtension.hasOwnProperty(ext)) {
             iconClass = 'fa-' + iconByExtension[ext];
@@ -151,7 +159,7 @@ function createFileDropbox(options) {
         icon.classList.add(iconClass);
         link.classList.add('target-link');
         link.setAttribute('target', '_blank');
-        link.setAttribute('href', href);
+        link.setAttribute('href', findPathByName(name));
         link.appendChild(nameNode);
         item.textContent = '';
         item.appendChild(icon);
@@ -209,7 +217,7 @@ function createFileDropbox(options) {
             if (!json || json.error) {
                 return setError(fileListItem, file.name + ' - ' + json.error);
             }
-            filesData.push(file);
+            filesData.push(json);
             setFile(fileListItem, file.name, json.name);
         };        
         xhr.send(formData);
