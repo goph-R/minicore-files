@@ -10,5 +10,5 @@
 </div>
 
 <?php append_block('scripts') ?>
-<script>createFileDropbox(<?= json_encode($options) ?>);</script>
+<script>createFileDropbox(<?= json_encode($options) ?>, <?= $callbacks ?>);</script>
 <?php end_block() ?>

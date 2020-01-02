@@ -34,6 +34,13 @@ class Files {
         return $this->db->fetchAll($this->recordClass, $query, $in['params']);
     }
     
+    public function findById($id) {
+        $query = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
+        return $this->db->fetch($this->recordClass, $query, [
+            ':id' => $id
+        ]);
+    }    
+    
     public function remove(File $file) {
         unlink($file->getPath());
         $this->db->query("DELETE FROM file WHERE id = :id LIMIT 1", [':id' => $file->getId()]);

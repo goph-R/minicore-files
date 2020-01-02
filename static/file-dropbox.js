@@ -1,4 +1,4 @@
-function createFileDropbox(options) {
+function createFileDropbox(options, callbacks) {
     
     const iconByExtension = {
         'doc': 'word',
@@ -45,91 +45,57 @@ function createFileDropbox(options) {
     const removeConfirmText = options.removeConfirmText || 'Are you sure, you want to remove?';
     const hideText = options.hideText || 'Hide';
     
+    const createFileLinkCallback = callbacks.createFileLinkCallback || createFileLink;
+    
     let filesData = options.filesData || [];      
     let fileDropbox = document.querySelector('#' + containerId + ' .file-dropbox');
     let fileList = document.querySelector('#' + containerId + ' .file-dropbox-list');
     let uploadLink = document.querySelector('#' + containerId + ' .file-dropbox-upload-link');
     let fileInput = document.querySelector('#' + containerId + ' input[type=file]');
     
-    function mouseIn(event) {
-        event.preventDefault();
-        let types = event.dataTransfer.types;
-        for (let i = 0; i < types.length; i++) {
-            if (types[i] === 'text/plain') {
-                return;
+    function removeFile(item, file, url) {
+        if (!confirm(removeConfirmText)) {
+            return;
+        }
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onload = function() {
+            if (this.status !== 200) {
+                return setError(item, file.original_name + ' - Remove error (Status: ' + this.status + ')');
+            } else {
+                item.remove();
             }
-        }
-        fileDropbox.classList.add('file-dropbox-over');
+        };
+        xhr.send();          
     }
     
-    function mouseOut(event) {
-        event.preventDefault();
-        fileDropbox.classList.remove('file-dropbox-over');
-    }
-    
-    function dropFiles(event) {
-        event.preventDefault();
-        let files = event.dataTransfer.files;
-        //console.log(files); // in Edge this is always empty.. why?
-        for (let i = 0; i < files.length; i++) {
-            uploadFile(files[i]);
-        }        
-    }
-    
-    function findPathByName(name) {
-        for (let i = 0; i < filesData.length; i++) {
-            if (filesData[i].name === name) {
-                return filesData[i].path;
-            }            
-        }
-        return '';
-    }
-    
-    function addRemoveLink(item, fileName, name) {
+    function createRemoveLink(item, file) {
         let icon = document.createElement('i');
         let link = document.createElement('a');
         let text = document.createElement('span');
         let url = new URL(removeUrl);
-        url.searchParams.set('name', name);
+        url.searchParams.set('name', file.name);
         icon.classList.add('fas');
         icon.classList.add('fa-trash');
         text.textContent = removeText;
         link.classList.add('remove-link');
         link.addEventListener('click', function() {
-            if (!confirm(removeConfirmText)) {
-                return;
-            }
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.onload = function() {
-                if (this.status !== 200) {
-                    return setError(item, fileName + ' - Remove error (Status: ' + this.status + ')');
-                } else {
-                    item.remove();
-                }
-            };
-            xhr.send();            
+            removeFile(item, file, url);
         });
         link.appendChild(text);
         link.appendChild(icon);
-        item.appendChild(link);
+        return link;
     }
      
-    function setError(item, message) {
-        let messageNode = document.createTextNode(message);
+    function createWarningIcon() {
         let icon = document.createElement('i');
         icon.classList.add('icon');
         icon.classList.add('fas');
         icon.classList.add('fa-exclamation-triangle');
-        item.textContent = '';
-        item.appendChild(icon);
-        item.appendChild(messageNode);        
-        item.style.color = '#a00';
-        addHideLink(item);
-        addClearDiv(item);
+        return icon;
     }
     
-    function addHideLink(item) {
+    function createHideLink(item) {
         let icon = document.createElement('i');
         let link = document.createElement('a');
         let text = document.createElement('span');
@@ -143,52 +109,72 @@ function createFileDropbox(options) {
         link.addEventListener('click', function() {
             item.remove();
         });
+        return link;
     }
     
-    function setFile(item, fileName, name) {
+    function createFileIcon(file) {
         let iconClass = 'fa-file';
         let icon = document.createElement('i');
-        let nameNode = document.createTextNode(fileName);
-        let link = document.createElement('a');
-        let ext = fileName.substr(fileName.lastIndexOf('.') + 1);
+        let ext = file.original_name.substr(file.original_name.lastIndexOf('.') + 1);
         if (iconByExtension.hasOwnProperty(ext)) {
             iconClass = 'fa-' + iconByExtension[ext];
         }
         icon.classList.add('icon');
         icon.classList.add('fas');
         icon.classList.add(iconClass);
+        return icon;
+    }
+    
+    function createFileLink(file) {
+        let nameNode = document.createTextNode(file.original_name);
+        let link = document.createElement('a');
         link.classList.add('target-link');
         link.setAttribute('target', '_blank');
-        link.setAttribute('href', findPathByName(name));
+        link.setAttribute('href', file.path);
         link.appendChild(nameNode);
-        item.textContent = '';
-        item.appendChild(icon);
-        item.appendChild(link);        
-        addRemoveLink(item, fileName, name);
-        if (inputName) {
-            addHiddenInput(item, inputName, name);        
-        }
-        addClearDiv(item);
+        return link;
     }
     
-    function addClearDiv(item) {
+    function createClearDiv() {
         let div = document.createElement('div');
         div.style.clear = 'both';
-        item.appendChild(div);
+        return div;
     }
     
-    function addHiddenInput(item, name, value) {
+    function createHiddenInput(name, file) {
         let hidden = document.createElement('input');
         hidden.setAttribute('type', 'hidden');
         hidden.setAttribute('name', name + '[]');
-        hidden.value = value; 
-        item.append(hidden);
+        hidden.value = file.name; 
+        return hidden;
     }
     
     function createFileListItem() {
         let fileListItem = document.createElement('li');
         fileList.appendChild(fileListItem);
         return fileListItem;
+    }    
+        
+    function setError(item, message) {
+        let messageNode = document.createTextNode(message);
+        item.style.color = '#a00';
+        item.textContent = '';
+        item.appendChild(createWarningIcon());
+        item.appendChild(messageNode);        
+        item.appendChild(createHideLink(item));
+        item.appendChild(createClearDiv());
+    }
+    
+    function setFile(item, file) {
+        item.textContent = '';
+        item.appendChild(createFileIcon(file));
+        item.appendChild(createFileLinkCallback(file));
+        item.appendChild(createRemoveLink(item, file));
+        if (inputName) {
+            let input = createHiddenInput(inputName, file);
+            item.appendChild(input);
+        }
+        item.appendChild(createClearDiv());
     }
     
     function uploadFile(file) {        
@@ -213,15 +199,40 @@ function createFileDropbox(options) {
             if (this.status !== 200) {
                 return setError(fileListItem, file.name + ' - Upload error (Status: ' + this.status + ')');
             }
-            json = JSON.parse(this.responseText);
-            if (!json || json.error) {
-                return setError(fileListItem, file.name + ' - ' + json.error);
+            let fileData = JSON.parse(this.responseText);
+            if (!fileData || fileData.error) {
+                return setError(fileListItem, file.name + ' - ' + fileData.error);
             }
-            filesData.push(json);
-            setFile(fileListItem, file.name, json.name);
+            filesData.push(fileData);
+            setFile(fileListItem, fileData);
         };        
         xhr.send(formData);
     }
+    
+    function mouseIn(event) {
+        event.preventDefault();
+        let types = event.dataTransfer.types;
+        for (let i = 0; i < types.length; i++) {
+            if (types[i] === 'text/plain') {
+                return;
+            }
+        }
+        fileDropbox.classList.add('file-dropbox-over');
+    }
+    
+    function mouseOut(event) {
+        event.preventDefault();
+        fileDropbox.classList.remove('file-dropbox-over');
+    }
+    
+    function dropFiles(event) {
+        event.preventDefault();
+        let files = event.dataTransfer.files;
+        //console.log(files); // in Edge this is always empty.. why?
+        for (let i = 0; i < files.length; i++) {
+            uploadFile(files[i]);
+        }        
+    }    
         
     // add event listeners
     mouseInEvents.forEach(function (eventName) {
@@ -241,6 +252,6 @@ function createFileDropbox(options) {
     // add existing files
     filesData.forEach(function (fileData) {
         let fileListItem = createFileListItem();
-        setFile(fileListItem, fileData.original_name, fileData.name);
+        setFile(fileListItem, fileData);
     });
 }

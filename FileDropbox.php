@@ -33,6 +33,8 @@ class FileDropbox {
     protected $removeRoute;
     protected $removeRouteParams;
     protected $name;
+    protected $options = [];
+    protected $callbacks = [];
     
     public function __construct(Framework $framework) {
         $this->framework = $framework;
@@ -42,6 +44,14 @@ class FileDropbox {
         $this->request = $framework->get('request');
         $this->response = $framework->get('response');
         $this->files = $framework->get('files');
+    }
+    
+    public function setOption($name, $value) {
+        $this->options[$name] = $value;
+    }
+    
+    public function setCallback($name, $value) {
+        $this->callbacks[$name] = $value;
     }
     
     public function setName($name) {
@@ -75,7 +85,7 @@ class FileDropbox {
             $data['path'] = $file->getPath();
             $filesData[] = $data;
         }
-        $options = [
+        $options = array_merge($this->options, [
             'containerId' => $id,
             'inputName' => $this->name,
             'uploadUrl' => route_url($this->uploadRoute, $this->uploadRouteParams, '&'),
@@ -86,10 +96,16 @@ class FileDropbox {
             'removeConfirmText' => text('files', 'remove_confirm'),
             'hideText' => text('files', 'hide'),
             'filesData' => $filesData,
-        ];        
+        ]);
+        $callbacks = "{";
+        foreach ($this->callbacks as $name => $callback) {
+            $callbacks .= "'$name': $callback,";
+        }
+        $callbacks .= "}";
         return $this->view->fetch(':files/file-dropbox', [
             'styleUrl' => $styleUrl,
             'options' => $options,
+            'callbacks' => $callbacks
         ]);
     }
     
