@@ -34,8 +34,9 @@ class FileDropboxInput extends Input {
     }
     
     public function setValue($value) {
-        if (is_array($value) && isset($value[0])) {
-            if (is_string($value[0])) {
+        if (is_array($value) && count($value)) {
+            $first = array_keys($value)[0];
+            if (is_string($value[$first])) {
                 $this->value = $this->files->findByNames($value);
             } else {
                 $this->value = $value;
@@ -47,13 +48,7 @@ class FileDropboxInput extends Input {
     
     public function fetch() {
         $this->fileDropbox->setName($this->form->getName().'['.$this->getName().']');
-        $value = $this->getValue();
-        if (!empty($value) && is_array($value)) {
-            $files = $value;
-        } else {
-            $files = [];
-        }
-        return $this->fileDropbox->fetch($this->getId(), $files);
+        return $this->fileDropbox->fetch($this->getId(), $this->getValue());
     }
     
 

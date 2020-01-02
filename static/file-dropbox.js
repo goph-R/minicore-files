@@ -144,7 +144,7 @@ function createFileDropbox(options, callbacks) {
     function createHiddenInput(name, file) {
         let hidden = document.createElement('input');
         hidden.setAttribute('type', 'hidden');
-        hidden.setAttribute('name', name + '[]');
+        hidden.setAttribute('name', name + '[' + file.id + ']');
         hidden.value = file.name; 
         return hidden;
     }

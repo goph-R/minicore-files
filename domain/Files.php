@@ -39,12 +39,6 @@ class Files {
         return $this->db->fetch($this->recordClass, $query, [
             ':id' => $id
         ]);
-    }    
-    
-    public function remove(File $file) {
-        unlink($file->getPath());
-        $this->db->query("DELETE FROM file WHERE id = :id LIMIT 1", [':id' => $file->getId()]);
-        $file->setAsNew();
     }
 
 }

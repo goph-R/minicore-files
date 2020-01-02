@@ -85,7 +85,7 @@ class FileDropbox {
             $data['path'] = $file->getPath();
             $filesData[] = $data;
         }
-        $options = array_merge($this->options, [
+        $options = array_merge([
             'containerId' => $id,
             'inputName' => $this->name,
             'uploadUrl' => route_url($this->uploadRoute, $this->uploadRouteParams, '&'),
@@ -96,7 +96,7 @@ class FileDropbox {
             'removeConfirmText' => text('files', 'remove_confirm'),
             'hideText' => text('files', 'hide'),
             'filesData' => $filesData,
-        ]);
+        ], $this->options);
         $callbacks = "{";
         foreach ($this->callbacks as $name => $callback) {
             $callbacks .= "'$name': $callback,";
