@@ -42,7 +42,7 @@ class FileDropboxInput extends Input {
                 $this->value = $value;
             }
         } else {
-            $value = [];            
+            $this->value = [];            
         }
     }
     
