@@ -41,4 +41,21 @@ class Files {
         ]);
     }
 
+    public function removeUnusedFiles($oldFiles, $newFiles) {
+        $oldFilesById = [];
+        $oldFileIds = [];
+        $newFileIds = [];
+        foreach ($oldFiles as $file) {
+            $oldFilesById[$file->getId()] = $file;
+            $oldFileIds[] = $file->getId();
+        }
+        foreach ($newFiles as $file) {
+            $newFileIds[] = $file->getId();
+        }
+        $diff = array_diff($oldFileIds, $newFileIds);
+        foreach ($diff as $id) {
+            $oldFilesById[$id]->remove();
+        }
+    }
+    
 }
