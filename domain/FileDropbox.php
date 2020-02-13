@@ -2,11 +2,14 @@
 
 class FileDropbox {
     
-    const CONFIG_FILE_DROPBOX_STYLE_URL = 'files.file_dropbox_style_url';
-    const DEFAULT_FILE_DROPBOX_STYLE_URL = '/modules/minicore-files/static/file-dropbox.css';
+    const CONFIG_STYLE_URL = 'file_dropbox.style_url';
+    const DEFAULT_STYLE_URL = '/modules/minicore-files/static/file-dropbox.css';
     
-    const CONFIG_FILE_DROPBOX_MAX_SIZE = 'files.file_dropbox_max_size';
-    const DEFAULT_FILE_DROPBOX_MAX_SIZE = 4*1024*1024;
+    const CONFIG_MAX_SIZE = 'file_dropbox.max_size';
+    const DEFAULT_MAX_SIZE = 4*1024*1024;
+    
+    const CONFIG_MAX_COUNT = 'file_dropbox.max_count';
+    const DEFAULT_MAX_COUNT = 10;
     
     /** @var Framework */
     protected $framework;
@@ -28,6 +31,8 @@ class FileDropbox {
     
     protected $allowedTypes = [];
     protected $disallowedTypes = [];
+    protected $maxSize = self::DEFAULT_MAX_SIZE;
+    protected $maxCount = self::DEFAULT_MAX_COUNT;
     protected $uploadRoute;
     protected $uploadRouteParams;
     protected $removeRoute;
@@ -44,10 +49,6 @@ class FileDropbox {
         $this->request = $framework->get('request');
         $this->response = $framework->get('response');
         $this->files = $framework->get('files');
-    }
-    
-    public function setOption($name, $value) {
-        $this->options[$name] = $value;
     }
     
     public function setCallback($name, $value) {
@@ -76,27 +77,40 @@ class FileDropbox {
         $this->disallowedTypes = $types;
     }
     
+    public function setMaxSize($value) {
+        $this->maxSize = $value;
+    }
+    
+    public function setMaxCount($value) {
+        $this->maxCount = $value;
+    }
+    
     public function fetch($id, array $files) {
-        $styleUrl = $this->config->get(self::CONFIG_FILE_DROPBOX_STYLE_URL, self::DEFAULT_FILE_DROPBOX_STYLE_URL);
-        $maxSize = $this->config->get(self::CONFIG_FILE_DROPBOX_MAX_SIZE, self::DEFAULT_FILE_DROPBOX_MAX_SIZE);
+        $styleUrl = $this->config->get(self::CONFIG_STYLE_URL, self::DEFAULT_STYLE_URL);        
+        $maxSize = $this->maxSize ? $this->maxSize : $this->config->get(self::CONFIG_MAX_SIZE, self::DEFAULT_MAX_SIZE);
+        $maxCount = $this->maxCount ? $this->maxCount : $this->config->get(self::CONFIG_MAX_COUNT, self::DEFAULT_MAX_COUNT);
         $filesData = [];
         foreach ($files as $file) {
             $data = $file->getArray();
             $data['path'] = $file->getPath();
             $filesData[] = $data;
         }
-        $options = array_merge([
+        $options = [
             'containerId' => $id,
             'inputName' => $this->name,
             'uploadUrl' => route_url($this->uploadRoute, $this->uploadRouteParams, '&'),
-            'removeUrl' => route_url($this->removeRoute, $this->removeRouteParams, '&'),
             'maxSize' => $maxSize,
             'biggerThanText' => text('files', 'bigger_than'),
             'removeText' => text('files', 'remove'),
             'removeConfirmText' => text('files', 'remove_confirm'),
             'hideText' => text('files', 'hide'),
             'filesData' => $filesData,
-        ], $this->options);
+            'maxCount' => $maxCount,
+            'maxCountExceeded' => text('files', 'max_count_exceeded', ['n' => $maxCount])
+        ];
+        if ($this->removeRoute) {
+            $options['removeUrl'] = route_url($this->removeRoute, $this->removeRouteParams, '&');            
+        }
         $callbacks = "{";
         foreach ($this->callbacks as $name => $callback) {
             $callbacks .= "'$name': $callback,";
@@ -131,6 +145,9 @@ class FileDropbox {
         if ($uploadedFile->getError() != UPLOAD_ERR_OK) {
             return $this->setError('upload_was_unsuccessful', $errorParams);
         }
+        if ($uploadedFile->getSize() > $this->maxSize) {
+            return $this->setError('file_too_big', $errorParams);
+        }        
         return true;
     }
     
@@ -140,7 +157,7 @@ class FileDropbox {
         finfo_close($finfo);
         return $type;
     }
-    
+
     protected function checkMimeType($type, array $errorParams) {
         if ($this->disallowedTypes) {
             if (in_array($type, $this->disallowedTypes)) {
@@ -166,7 +183,7 @@ class FileDropbox {
         $file->setOriginalName($uploadedFile->getName());
         $file->setSize($uploadedFile->getSize());
         $file->setType($type);
-        $file->setCreatedBy($this->userSession->get('id'));
+        $file->setCreatedBy($this->userSession->getId());
         $file->setCreatedOn(date('Y-m-h H:i:s'));
         $file->save();
         return $file;

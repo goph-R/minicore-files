@@ -24,9 +24,13 @@ class FileDropboxInput extends Input {
     public function setRemoveRoute($value, array $params=[]) {
         $this->fileDropbox->setRemoveRoute($value, $params);
     }
-
-    public function setOption($name, $value) {
-        $this->fileDropbox->setOption($name, $value);
+    
+    public function setMaxSize($value) {
+        $this->fileDropbox->setMaxSize($value);
+    }
+    
+    public function setMaxCount($value) {
+        $this->fileDropbox->setMaxCount($value);
     }
 
     public function setCallback($name, $value) {

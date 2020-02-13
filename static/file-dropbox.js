@@ -44,6 +44,8 @@ function createFileDropbox(options, callbacks) {
     const removeText = options.removeText || 'Remove';
     const removeConfirmText = options.removeConfirmText || 'Are you sure, you want to remove?';
     const hideText = options.hideText || 'Hide';
+    const maxCount = options.maxCount || 10;
+    const maxCountExceededText = options.maxCountExceededText || 'Maximum file count exceeded.';
     
     const createFileLinkCallback = callbacks.createFileLinkCallback || createFileLink;
     
@@ -52,29 +54,39 @@ function createFileDropbox(options, callbacks) {
     let fileList = document.querySelector('#' + containerId + ' .file-dropbox-list');
     let uploadLink = document.querySelector('#' + containerId + ' .file-dropbox-upload-link');
     let fileInput = document.querySelector('#' + containerId + ' input[type=file]');
+    let fileCount = filesData.length;
     
     function removeFile(item, file, url) {
         if (!confirm(removeConfirmText)) {
+            return;
+        }
+        fileCount--;
+        if (!url) {
+            item.remove();
             return;
         }
         let xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.onload = function() {
             if (this.status !== 200) {
+                fileCount++;
                 return setError(item, file.original_name + ' - Remove error (Status: ' + this.status + ')');
             } else {
                 item.remove();
             }
         };
-        xhr.send();          
+        xhr.send();
     }
     
     function createRemoveLink(item, file) {
         let icon = document.createElement('i');
         let link = document.createElement('a');
         let text = document.createElement('span');
-        let url = new URL(removeUrl);
-        url.searchParams.set('name', file.name);
+        let url = null;
+        if (removeUrl) {
+            url = new URL(removeUrl);
+            url.searchParams.set('name', file.name);
+        }
         icon.classList.add('fas');
         icon.classList.add('fa-trash');
         text.textContent = removeText;
@@ -185,6 +197,10 @@ function createFileDropbox(options, callbacks) {
         if (file.size > maxSize) {
             return setError(fileListItem, file.name + ' - ' + biggerThanText + ' ' + maxMB + 'MB.');
         }
+        fileCount++;
+        if (fileCount > maxCount) {
+            return setError(fileListItem, file.name + ' - ' + maxCountExceededText);
+        }
         fileListItem.textContent = file.name;        
         formData.append('file', file);
         xhr.open('POST', uploadUrl, true);                
@@ -197,10 +213,12 @@ function createFileDropbox(options, callbacks) {
         };        
         xhr.onload = function() {
             if (this.status !== 200) {
+                fileCount--;
                 return setError(fileListItem, file.name + ' - Upload error (Status: ' + this.status + ')');
             }
             let fileData = JSON.parse(this.responseText);
             if (!fileData || fileData.error) {
+                fileCount--;
                 return setError(fileListItem, file.name + ' - ' + fileData.error);
             }
             filesData.push(fileData);
