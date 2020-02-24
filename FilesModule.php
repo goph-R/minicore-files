@@ -2,6 +2,8 @@
 
 class FilesModule extends Module {
     
+    protected $id = 'minicore-files';
+    
     public function __construct(Framework $framework) {
         parent::__construct($framework);
         $framework->add([
