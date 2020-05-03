@@ -11,9 +11,6 @@ class FileDropbox {
     const CONFIG_MAX_COUNT = 'file_dropbox.max_count';
     const DEFAULT_MAX_COUNT = 10;
     
-    /** @var Framework */
-    protected $framework;
-    
     /** @var Config */
     protected $config;
     
@@ -41,8 +38,8 @@ class FileDropbox {
     protected $options = [];
     protected $callbacks = [];
     
-    public function __construct(Framework $framework) {
-        $this->framework = $framework;
+    public function __construct() {
+        $framework = Framework::instance();
         $this->config = $framework->get('config');
         $this->view = $framework->get('view');
         $this->userSession = $framework->get('userSession');
@@ -178,7 +175,8 @@ class FileDropbox {
     }
     
     protected function createFile(UploadedFile $uploadedFile, $name, $type) {
-        $file = $this->framework->create('File');
+        $framework = Framework::instance();
+        $file = $framework->create('File');
         $file->setName($name);
         $file->setOriginalName($uploadedFile->getName());
         $file->setSize($uploadedFile->getSize());

@@ -10,8 +10,9 @@ class FileDropboxInput extends Input {
     /** @var FileDropbox */
     protected $fileDropbox;
     
-    public function __construct(Framework $framework, $name, $defaultValue=[]) {
-        parent::__construct($framework, $name, $defaultValue);
+    public function __construct($name, $defaultValue=[]) {
+        parent::__construct($name, $defaultValue);
+        $framework = Framework::instance();
         $this->files = $framework->get('files');
         $this->fileDropbox = $framework->create('FileDropbox');
         $this->setValue($defaultValue);

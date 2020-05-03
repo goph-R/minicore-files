@@ -8,7 +8,8 @@ class FileHandler {
     private $files;
     private $db;
     
-    public function __construct(Framework $framework, $tableName, $reference, $dbInstanceName='database') {
+    public function __construct($tableName, $reference, $dbInstanceName='database') {
+        $framework = Framework::instance();
         $this->tableName = $tableName;
         $this->reference = $reference;
         $this->db = $framework->get($dbInstanceName);

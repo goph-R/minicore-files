@@ -2,9 +2,6 @@
 
 class Files {
 
-    /** @var Framework */
-    protected $framework;
-
     /** @var Database */
     protected $db;
 
@@ -12,8 +9,8 @@ class Files {
     protected $tableName = 'file';
     protected $recordClass = 'File';
 
-    public function __construct(Framework $framework) {
-        $this->framework = $framework;
+    public function __construct() {
+        $framework = Framework::instance();
         $this->db = $framework->get($this->dbInstanceName);
     }
     

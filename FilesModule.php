@@ -4,8 +4,8 @@ class FilesModule extends Module {
     
     protected $id = 'minicore-files';
     
-    public function __construct(Framework $framework) {
-        parent::__construct($framework);
+    public function __construct() {
+        $framework = Framework::instance();
         $framework->add([
             'files' => 'Files'
         ]);      
@@ -13,11 +13,12 @@ class FilesModule extends Module {
     
     public function init() {
         parent::init();
+        $framework = Framework::instance();
         /** @var Translation $translation */
-        $translation = $this->framework->get('translation');
+        $translation = $framework->get('translation');
         $translation->add('files', 'modules/minicore-files/translations');
         /** @var View $view */
-        $view = $this->framework->get('view');
+        $view = $framework->get('view');
         $view->addFolder(':files', 'modules/minicore-files/templates');
     }
     
